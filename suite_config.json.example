@@ -1,0 +1,52 @@
+{
+  "global": {
+    "output_dir": "github_export"
+  },
+  "github_extractor": {
+    "token": "",
+    "sources": ["owned", "forks", "starred", "trending"],
+    "collections_full": false,
+    "repo": "",
+    "trending_langs": "",
+    "skip_text_files": false,
+    "text_extensions": "",
+    "skip_issues": false,
+    "resume": true,
+    "schedule": "",
+    "searxng_url": "",
+    "chain_platform": false,
+    "platform_sources_filter": ""
+  },
+  "platform_extractor": {
+    "mode": "forward",
+    "sources": ["hackernews","paperswithcode","npm","pypi","cratesio","devto","lobsters","reddit","thisweekrust","searxng"],
+    "schedule": "",
+    "floor_date": "2024-01-01",
+    "lookback_batch": 50,
+    "config_yaml": "",
+    "searxng_url": ""
+  },
+  "pia": {
+    "ingest_only": false,
+    "scan_only": false,
+    "project": "",
+    "force_eligible": "",
+    "no_intent": false,
+    "no_compare": false,
+    "compare_topic": "",
+    "compare_repos": "",
+    "skip_benchmark": false,
+    "clear_kb": false,
+    "config_yaml": ""
+  },
+  "viewer": {
+    "trending_period": "daily",
+    "trending_lang": "",
+    "external_source": "",
+    "external_date": "",
+    "text_ext_filter": "",
+    "discoveries_source": "",
+    "discoveries_min_score": 0,
+    "discoveries_history": false
+  }
+}

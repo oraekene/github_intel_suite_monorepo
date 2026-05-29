@@ -1,0 +1,313 @@
+# ============================================================
+# PIA — Project Intelligence Analyst
+# Configuration File
+# Fill in every value marked with <REPLACE_THIS>
+# ============================================================
+
+# ── ANTHROPIC ───────────────────────────────────────────────
+anthropic:
+  api_key: "<REPLACE_THIS>"          # Your Anthropic API key
+  model: "claude-sonnet-4-20250514"
+  max_tokens: 2000
+  # Max files analyzed per run (keeps costs predictable)
+  max_files_per_run: 60
+
+# ── THIRD-PARTY KNOWLEDGE BASE ──────────────────────────────
+knowledge_base:
+  # Folder on your laptop containing all exported README/text
+  # files from NotebookLM / GitHub (can have subfolders)
+  source_dir: "C:/Users/YourName/Documents/pia-knowledge"
+  # ChromaDB will persist here (created automatically)
+  chroma_dir: "C:/Users/YourName/Documents/pia-data/chroma"
+  # Embedding model — small & fast, runs on CPU fine
+  embedding_model: "all-MiniLM-L6-v2"
+  chunk_size: 800          # tokens per chunk
+  chunk_overlap: 100
+  # Minimum similarity score to include a chunk (0.0–1.0)
+  similarity_threshold: 0.35
+  top_k_results: 6         # chunks retrieved per file
+
+# ── YOUR OWN PROJECTS ───────────────────────────────────────
+projects:
+  local:
+    enabled: true
+    # List every root folder that contains your local projects
+    # Each path should be the PARENT folder; PIA will discover
+    # individual project sub-folders automatically.
+    roots:
+      - "C:/Users/YourName/Projects"
+      # Add more paths as needed:
+      # - "D:/Work/SideProjects"
+
+  github:
+    enabled: true
+    username: "<REPLACE_THIS>"        # Your GitHub username
+    token: "<REPLACE_THIS>"           # GitHub personal access token
+                                      # (needs repo + read:org scope)
+    # "owned" | "all" (includes forks/starred you want analysed)
+    # For YOUR projects only, keep this as "owned"
+    include: "owned"
+    # Repos to skip (add names, not full URLs)
+    exclude_repos:
+      - "dotfiles"
+
+  colab:
+    enabled: false                    # Set true when ready
+    # Path to Google service account credentials JSON
+    credentials_file: "C:/Users/YourName/Documents/pia-data/gdrive-creds.json"
+    # The Google Drive folder ID that contains your Colab notebooks
+    # (get from the URL: drive.google.com/drive/folders/<ID>)
+    colab_folder_id: "<REPLACE_THIS>"
+
+# ── FILE FILTERS ────────────────────────────────────────────
+scan:
+  # File extensions to analyse in your projects
+  include_extensions:
+    - ".py"
+    - ".js"
+    - ".ts"
+    - ".jsx"
+    - ".tsx"
+    - ".ipynb"
+    - ".md"
+    - ".yaml"
+    - ".yml"
+    - ".json"
+    - ".toml"
+    - ".env.example"
+    - ".sh"
+  # Folders to always skip (case-insensitive)
+  exclude_dirs:
+    - node_modules
+    - .git
+    - __pycache__
+    - .venv
+    - venv
+    - env
+    - dist
+    - build
+    - .next
+    - .nuxt
+    - coverage
+    - .pytest_cache
+  # Skip files larger than this (bytes) — avoids huge lock files
+  max_file_size_bytes: 150000
+
+# ── REPORT OUTPUT ───────────────────────────────────────────
+reports:
+  output_dir: "C:/Users/YourName/Documents/pia-data/reports"
+  # "markdown" only for now
+  format: "markdown"
+  # Include file-level detail or just project summaries
+  include_file_detail: true
+  # Minimum number of improvement findings to bother reporting a file
+  min_findings_to_report: 1
+
+# ── SCHEDULER (Windows Task Scheduler) ──────────────────────
+schedule:
+  # How often to run — used by the setup_scheduler.bat script
+  # Options: "daily" | "weekly"
+  frequency: "weekly"
+  # 24-hour format
+  run_time: "09:00"
+  day_of_week: "MON"    # Only used if frequency = weekly
+
+
+# ── INTENT ANALYSIS ─────────────────────────────────────────────────────────
+# Controls the new deep intent + gap analysis arm.
+intent_analysis:
+  enabled: true
+  # Larger token budget because intent analysis needs full function context
+  max_tokens: 3000
+  # Minimum severity of intent gaps to include in reports
+  # Options: "low" (all gaps), "medium" (medium+high), "high" (critical only)
+  min_gap_severity: "low"
+  # Build a whole-project profile before analysing individual files.
+  # Uses ~1 extra API call per project per run.  Highly recommended.
+  build_project_profile: true
+  # Suggest architecturally different solutions when KB has better alternatives
+  suggest_architectural_alternatives: true
+
+
+# ── REPUTATION / QUALITY GATING ──────────────────────────────────────────────
+# Controls whether newly discovered KB repos must pass a quality benchmark
+# before their patterns are suggested in your project analysis.
+#
+# How it works:
+#   1. When a new repo is ingested, it is registered as "not yet evaluated".
+#   2. Phase 1.5 (repo_benchmarker) runs a focused LLM comparison of the new
+#      repo against existing domain champions (numeric 1–10 scoring across
+#      5 code-quality dimensions).
+#   3. Only if the new repo scores >= the current champion AND >=
+#      min_score_threshold does it become eligible (is_eligible = True).
+#   4. The retriever silently filters out chunks from ineligible repos so
+#      they never appear as suggestion sources in your analysis reports.
+#
+# Registry is stored at reputation.registry_path as a JSON file.
+# View it any time to see every repo's standing per domain.
+reputation:
+  enabled: true
+
+  # Path to the reputation registry JSON file.
+  # Leave empty to auto-resolve to <chroma_dir>/../reputation_registry.json
+  registry_path: ""
+
+  # Minimum composite score (1–10) a repo must achieve to become eligible,
+  # even if it beats the current champion.  Prevents a mediocre repo from
+  # winning a domain where all existing repos are also mediocre.
+  # Set to 0 to disable the floor check (any winner becomes eligible).
+  min_score_threshold: 5.0
+
+  # If true (default), fall back to including ineligible repos when the query
+  # would otherwise return an empty context window.  This protects you from
+  # getting zero context on the very first run or on niche topics.
+  # Set to false for strict mode: only eligible repos ever contribute.
+  fallback_to_ineligible: true
+
+  # Explicit list of domains to benchmark repos against.
+  # Leave empty [] to auto-use comparison.scheduled_topics, or if those are
+  # also empty, PIA uses a built-in taxonomy of 8 universal software domains.
+  #
+  # Example:
+  # domains:
+  #   - "error handling and retry logic"
+  #   - "authentication and JWT management"
+  #   - "database query patterns"
+  domains: []
+
+
+
+comparison:
+  enabled: true
+  max_tokens: 2500
+  # Auto-detect comparison opportunities in each analysed file.
+  # Adds ~1 API call per file where 2+ KB repos are relevant.
+  auto_detect: false          # set true when you want automatic comparisons
+  # Topics you always want compared on every run.
+  # Format: "topic_label: topic query string"
+  # Example:
+  # scheduled_topics:
+  #   - "error handling and retry strategies"
+  #   - "authentication and session management"
+  scheduled_topics: []
+  # KB repos to always include in scheduled comparisons (by repo name).
+  # Leave empty to use auto-discovery only.
+  pinned_repos: []
+
+
+# ── USER GUIDANCE PROMPTS ────────────────────────────────────────────────────
+# Optional system-level guidance injected into all analysis calls.
+# Use this to tell PIA about your personal preferences, architectural decisions
+# you've already made, things to focus on or ignore, etc.
+#
+# You can also create a separate file (default: user_prompts.yaml in the pia/
+# root) for more detailed guidance — that file is merged with the inline text.
+user_prompts:
+  # Path to your custom prompts file (optional).
+  file: "user_prompts.yaml"   # relative to pia/ root; set "" to disable
+  # Inline guidance (added to EVERY analysis call, all modules):
+  inline: |
+    # Example — replace with your own preferences:
+    # Focus on practical improvements I can implement solo.
+    # I prefer simple, readable code over clever abstractions.
+    # This is a personal project — don't suggest enterprise-scale patterns.
+
+
+# ── CONSTRAINTS ──────────────────────────────────────────────────────────────
+# Describe your real-world context.  PIA uses these to filter out suggestions
+# that are impractical for your situation.
+#
+# Other important software development constraints to be aware of:
+#   - Regulatory compliance (GDPR, HIPAA, PCI-DSS, SOC 2, CCPA, NDPR)
+#   - Accessibility standards (WCAG 2.1/2.2 levels A/AA/AAA)
+#   - Internationalization / localization requirements
+#   - Offline or unreliable network operation
+#   - Third-party API rate limits and vendor lock-in risks
+#   - Team size and skill level (affects maintainability trade-offs)
+#   - Tech debt tolerance and refactoring runway
+#   - Open source vs proprietary license compatibility
+#   - CI/CD pipeline and testing coverage requirements
+#   - Browser / runtime / OS version support matrix
+#   - Backward compatibility and deprecation policy
+#   - Disaster recovery and backup requirements
+#   - Observability: logging, metrics, tracing requirements
+#   - Data residency / sovereignty requirements
+constraints:
+
+  # ── Developer device ──────────────────────────────────────────────────────
+  dev_device:
+    os: "Windows 10"
+    cpu: "Intel Core i3"
+    ram_gb: 12
+    storage_type: "HDD 250GB"
+    gpu: null               # null = no GPU / CPU only
+
+  # ── Target user device ────────────────────────────────────────────────────
+  target_user_device:
+    # Options: desktop, mobile, server, embedded, cli, browser, mixed
+    type: "desktop"
+    min_ram_gb: null        # null = no constraint
+    connectivity: "variable"  # reliable | variable | offline-first
+    notes: ""
+
+  # ── Performance goals ─────────────────────────────────────────────────────
+  performance:
+    max_response_ms: null     # null = no hard limit
+    max_memory_mb: null
+    target_throughput: null   # e.g. "100 req/s"
+    startup_time_budget: null # e.g. "< 3s"
+
+  # ── Deployment ────────────────────────────────────────────────────────────
+  deployment:
+    # Options: local, vps, serverless, docker, kubernetes, github-actions, mixed
+    environment: "local"
+    containerized: false
+    ci_cd: "GitHub Actions"
+    cloud_provider: null      # null = none / on-prem
+    offline_capable: false    # must the software work without internet?
+
+  # ── Security ──────────────────────────────────────────────────────────────
+  security:
+    # Options: none, api-key, jwt, oauth2, session, mfa, passkey
+    auth_method: "api-key"
+    # Options: public, internal, confidential, restricted
+    data_classification: "internal"
+    # List any that apply: GDPR, HIPAA, PCI-DSS, SOC2, NDPR, ISO27001
+    compliance: []
+    encryption_at_rest: false
+    notes: ""
+
+  # ── Team & maintainability ─────────────────────────────────────────────────
+  team:
+    size: "solo"              # solo, small (2-5), medium (6-20), large (20+)
+    experience_level: "intermediate"  # junior, intermediate, senior, mixed
+    # How tolerant are you of accruing technical debt for speed?
+    tech_debt_tolerance: "low"  # low, medium, high
+
+  # ── Compatibility ─────────────────────────────────────────────────────────
+  compatibility:
+    min_python: "3.10"
+    min_node: null
+    browser_targets: []       # e.g. ["Chrome 120+", "Firefox 120+", "Safari 17+"]
+    backward_compat: null     # e.g. "must not break v1.x API"
+
+  # ── Licensing ─────────────────────────────────────────────────────────────
+  licensing:
+    project_license: null     # e.g. "MIT", "Apache-2.0", "proprietary"
+    # Dependency licenses you're allowed to use:
+    allowed_dep_licenses: []  # e.g. ["MIT", "Apache-2.0", "BSD"]
+
+  # ── Accessibility & i18n ──────────────────────────────────────────────────
+  accessibility:
+    wcag_level: null          # null, "A", "AA", "AAA"
+    languages: ["en"]
+
+  # ── Budget ────────────────────────────────────────────────────────────────
+  budget:
+    max_monthly_infra_usd: null
+    max_monthly_api_usd: null
+
+  # ── Free-form notes ───────────────────────────────────────────────────────
+  additional_notes: |
+    # Add any other constraints here.
+    # Example: "This is a single-developer hobby project with no budget."

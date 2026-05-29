@@ -1,0 +1,41 @@
+# PIA — Project Intelligence Analyst
+# Requirements — tuned for low-spec Windows (Core i3, 12GB RAM)
+
+# Core
+anthropic>=0.40.0
+pyyaml>=6.0.1
+python-dotenv>=1.0.0
+tqdm>=4.66.0
+colorama>=0.4.6          # Coloured terminal output on Windows
+
+# Vector store (local, no server needed)
+chromadb>=0.5.0
+
+# Embeddings — CPU-only, small model (~90MB)
+sentence-transformers>=3.0.0
+# Force CPU-only torch to keep install size small
+torch>=2.0.0
+# If torch install is slow/fails, try:
+#   pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+# Text processing
+tiktoken>=0.7.0           # Token counting for chunking
+chardet>=5.2.0            # Detect file encoding
+
+# GitHub API
+PyGithub>=2.3.0
+
+# Google Drive (Colab notebooks) — only needed if colab enabled
+google-api-python-client>=2.130.0
+google-auth-httplib2>=0.2.0
+google-auth-oauthlib>=1.2.0
+
+# Notebook parsing
+nbformat>=5.9.0
+
+# Reporting
+rich>=13.7.0              # Pretty terminal output and tables
+jinja2>=3.1.4             # Report templating
+
+# Scheduling utils
+schedule>=1.2.2

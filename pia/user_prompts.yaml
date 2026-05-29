@@ -1,0 +1,66 @@
+# ============================================================
+# PIA — User Guidance Prompts
+# ============================================================
+# This file is injected into EVERY analysis call (code review,
+# intent analysis, and comparisons).  Use it to tell PIA about
+# your preferences, constraints you've already decided, things
+# to always focus on or always skip, etc.
+#
+# All sections are optional.  Delete or comment out any you
+# don't want.
+#
+# Changes here take effect on the next run — no restart needed.
+# ============================================================
+
+
+# ── General preferences ──────────────────────────────────────────────────────
+general: |
+  # Examples (uncomment and edit):
+  # I prefer simple, explicit code over clever abstractions.
+  # This is a solo project — don't suggest team workflows or
+  # enterprise patterns unless they also apply at small scale.
+  # Flag any security issues even if severity seems low.
+
+
+# ── Code review focus ────────────────────────────────────────────────────────
+# Applied to the standard code review (llm_analyzer.py).
+code_review: |
+  # Examples:
+  # Prioritise error handling and input validation above all else.
+  # I already use black + isort — don't suggest formatting changes.
+  # Ignore any suggestions about adding type hints to test files.
+
+
+# ── Intent analysis focus ────────────────────────────────────────────────────
+# Applied to the intent + gap analysis (intent_analyzer.py).
+intent_analysis: |
+  # Examples:
+  # Focus on missing validation in user-facing functions.
+  # I care more about robustness than performance at this stage.
+  # Each function should handle its own errors — don't suggest
+  # centralising error handling unless it's clearly better.
+
+
+# ── Comparison preferences ────────────────────────────────────────────────────
+# Applied to the multi-approach comparison engine (comparator.py).
+comparison: |
+  # Examples:
+  # Prefer approaches that have the fewest external dependencies.
+  # I value readability over raw performance in comparisons.
+  # Always consider the lightweight option even if it scores lower
+  # on features — I can add features later.
+
+
+# ── Things to always flag ────────────────────────────────────────────────────
+always_flag: |
+  # Hard rules PIA should always enforce regardless of severity:
+  # - Any hardcoded credentials or secrets
+  # - Any use of eval() or exec() on untrusted input
+  # - Missing .gitignore for sensitive files
+
+
+# ── Things to always ignore ──────────────────────────────────────────────────
+always_ignore: |
+  # Patterns PIA should never suggest (things you've already decided):
+  # - Don't suggest adding Docker if I've already noted local-only deployment
+  # - Don't suggest TypeScript migration — this project stays in JavaScript
